@@ -3,14 +3,26 @@ central_mass = 0
 length = 10
 
 resol = 128
+# If you own a supercomputer, can try 384 or 512
 
-solitons = [[10,[1,1,0],[0,-1,0],0],[10,[-2,-2,0],[0,1,0],1.7]]
+solitons = [[6,[1,1,0],[0,0,0],0],
+            [6,[-1,-1,0],[0,0,0],0],
+            [6,[1,-1,0],[0,0,0],1],
+            [6,[-1,1,0],[0,0,0],1]]
+
+Plot = 'Phi' # 'Rho'
+
+# Mass, 3-Position, 3-Velocity, Phase (/ pi)
+
 start_time = 0
 
-particles = []
-embeds = []
+particles = [] # Not Supported In Interactive Mode
+embeds = [] # Not Supported In Interactive Mode
+
 Uniform = False
 Density = 0
+
+time_factor = 10
 
 a = 3000
 B = 0
@@ -40,46 +52,7 @@ num_threads = multiprocessing.cpu_count()
 
 pi = np.pi
 
-eV = 1.783e-36 # kg*c^2
-
-# ULDM:
-axion_E = 1e-22
-
-# CDM Clumps:
-#axion_E = 2e-5
-
-axion_mass = axion_E * eV
-
-hbar = 1.0545718e-34  # m^2 kg/s
-
-parsec = 3.0857e16  # m
-
-light_year = 9.4607e15  # m
-
-solar_mass = 1.989e30  # kg
-
-G = 6.67e-11  # kg
-
-
-omega_m0 = 0.31
-
-H_0 = 67.7 / (parsec * 1e3)  # s^-1
-
-CritDens = 3*H_0**2/(8*pi*G)
-# IMPORTANT
-
-time_unit = (3 * H_0 ** 2 * omega_m0 / (8 * pi)) ** -0.5
-
-length_unit = (8 * pi * hbar ** 2 / (3 * axion_mass ** 2 * H_0 ** 2 * omega_m0)) ** 0.25
-
-mass_unit = (3 * H_0 ** 2 * omega_m0 / (8 * pi)) ** 0.25 * hbar ** 1.5 / (axion_mass ** 1.5 * G)
-
-energy_unit = mass_unit * length_unit ** 2 / (time_unit**2)
-
-
-# In[30]:
-
-
+print("This is a demo version with almost all scientific capabilities removed.")
 ####################### Credits Information
 def PyULCredits(IsoP = False,UseDispSponge = False,embeds = []):
     print(f"==============================================================================")
@@ -545,9 +518,9 @@ Vcell = (lengthC / float(resol)) ** 3
 ne.set_num_threads(num_threads)
 
 ##########################################################################################
-# SET UP THE REAL SPACE COORDINATES OF THE GRID - FW Revisit
+# SET UP THE REAL SPACE COORDINATES OF THE GRID - Version 1!
 
-gridvec = np.linspace(-lengthC / 2.0, lengthC / 2.0, resol, endpoint=False)
+gridvec = np.linspace(-lengthC / 2.0 + lengthC/(resol*2.0), lengthC / 2.0 - lengthC/(resol*2.0), resol, endpoint=False)
 
 xarray, yarray, zarray = np.meshgrid(
     gridvec, gridvec, gridvec,
@@ -604,7 +577,7 @@ for s in solitons:
     # Note that alpha and beta parameters are computed when the initial_f.npy soliton profile file is generated.
     alpha = (mass / 3.883) ** 2
     beta = 2.454
-    phase = s[3]
+    phase = s[3] * pi
     funct = initsoliton_jit(funct, xarray, yarray, zarray, position, alpha, f, delta_x)
     ####### Impart velocity to solitons in Galilean invariant way
     velx = velocity[0]
@@ -634,7 +607,7 @@ rho = rho.real
 delta_t = (lengthC/float(resol))**2/np.pi
 
 
-h = 10 * delta_t
+h = time_factor * delta_t
 ##########################################################################################
 # SETUP PADDED POTENTIAL HERE (From JLZ)
 
@@ -717,14 +690,23 @@ Success = True
 TIntegrate = 0
 I = 0
 
-fig = plt.figure(figsize = (10,10))
+fig = plt.figure(figsize = (16,9))
 
-im = plt.imshow(rho[:,:,resol//2], animated=True, cmap = 'magma', extent = (-length/2,length/2,-length/2,length/2,))
+axA = fig.add_subplot(121)
+axB = fig.add_subplot(122)
+
+
+
+imA = axA.imshow(np.array(rho[:,:,resol//2]), animated=True, cmap = 'magma', extent = (-length/2,length/2,-length/2,length/2,))
+
+imB = axB.imshow(np.array(phi[:,:,resol//2]), animated=True, cmap = 'ocean_r', extent = (-length/2,length/2,-length/2,length/2,))
 
 fig.canvas.set_window_title('PyUltralight Live')
 
+import time
 def updatefig(*args):
-
+    
+    time0 = time.time()
     global I, TIntegrate, psi, rho, phi
     TIntegrate += h
     
@@ -753,15 +735,19 @@ def updatefig(*args):
 
     phi = phiSP
 
-    im.set_array(rho[:,:,resol//2])
+    imA.set_array(np.array(rho[:,:,resol//2]))
+    imB.set_array(np.array(phi[:,:,resol//2]))
+    Gap = time.time() - time0
+    
+    FPS = int(1 / Gap)
     plt.draw()
     I+= 1
+
     
-    
-    print(f'\r{TIntegrate:.4f}', end = '', flush = 'true')
-    return im,
+    print(f'\r{TIntegrate:.4f} @ {FPS} FPS.', end = '', flush = 'true')
+    return imA, imB,
     
 
-ani = animation.FuncAnimation(fig, updatefig, interval=50, blit=True)
+ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True)
 
 plt.show()
