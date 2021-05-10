@@ -18,28 +18,21 @@ UVel = [0,0,0]
 
 t0 = 0
     
-
 Version   = str('PyUL2_Int') # Handle used in console.
 D_version = str('Build 2021 May 05') # Detailed Version
 S_version = 21.0 # Short Version
 
-
-
-
 import sys
 import numpy as np
-import numexpr as ne
-import numba
-
-import pyfftw
-
-import multiprocessing
-
-
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-# For Jupyter
+
+import numexpr as ne
+import numba
+import pyfftw
+import multiprocessing
+
 from IPython.core.display import clear_output
 
     
@@ -765,7 +758,7 @@ def updatefig(*args):
     I+= 1
     
     
-    print(f'\r{TIntegrate}', end = '', flush = 'true')
+    print(f'\r{TIntegrate:.4f}', end = '', flush = 'true')
     return im,
     
 
