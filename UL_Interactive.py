@@ -686,7 +686,14 @@ if np.isnan(rho).any() or np.isnan(psi).any():
 print('Initialized!')
 
 
-Success = True
+
+plt.style.use('dark_background')
+
+plt.rcParams['font.family'] = 'DejaVu Serif'
+plt.rcParams['font.size'] = 18
+plt.rcParams['axes.linewidth'] = 4
+plt.rcParams['lines.linewidth'] = 3
+
 TIntegrate = 0
 I = 0
 
@@ -695,11 +702,15 @@ fig = plt.figure(figsize = (16,9))
 axA = fig.add_subplot(121)
 axB = fig.add_subplot(122)
 
-
+fig.suptitle(f'PyUL Interactive {S_version}, Public Evaluation')
 
 imA = axA.imshow(np.array(rho[:,:,resol//2]), animated=True, cmap = 'magma', extent = (-length/2,length/2,-length/2,length/2,))
 
 imB = axB.imshow(np.array(phi[:,:,resol//2]), animated=True, cmap = 'ocean_r', extent = (-length/2,length/2,-length/2,length/2,))
+
+axA.set_title('Mass Density')
+
+axB.set_title('Gravitational Field')
 
 fig.canvas.set_window_title('PyUltralight Live')
 
