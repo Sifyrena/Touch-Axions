@@ -41,7 +41,7 @@ import matplotlib.animation as animation
 
 
 import numexpr as ne
-import numba
+# import numba
 import pyfftw
 import multiprocessing
 
@@ -484,7 +484,7 @@ def initsoliton(funct, xarray, yarray, zarray, position, alpha, f, delta_x,Cutof
 ##########################################################################################
 # CREATE THE Just-In-Time Functions (work in progress)
 
-initsoliton_jit = numba.jit(initsoliton)
+initsoliton_jit = initsoliton
 
 
 
