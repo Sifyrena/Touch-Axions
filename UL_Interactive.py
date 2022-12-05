@@ -42,6 +42,7 @@ import matplotlib.animation as animation
 
 import numexpr as ne
 # import numba
+from scipy.optimize import CubicSpline as CS
 import pyfftw
 import multiprocessing
 
@@ -451,7 +452,25 @@ def NBodyAdvance_NI(TMState,h,masslist,phiSP,a,lengthC,resol,NS):
 
             return TMStateOut, GradientLog
 
+def InitSolitonF(gridVec, position, resol, alpha, delta_x=0.00001, DR = 1):
 
+    xAr, yAr, zAr = np.meshgrid(gridVec - position[0],
+                                gridVec - position[1],
+                                gridVec - position[2],
+                                sparse=True,
+                                indexing="ij")
+
+    gridSize = gridVec[1] - gridVec[0]
+    DistArr = ne.evaluate("sqrt(xAr**2+yAr**2+zAr**2 * DR)")
+
+    f = alpha * LoadDefaultSoliton()
+    fR = np.arange(len(f)) * delta_x / np.sqrt(alpha)
+
+    fInterp = CS(fR, f, bc_type=("clamped", "not-a-knot"))
+
+    DistArrPts = DistArr.reshape(resol**3)
+
+    return fInterp(DistArrPts).reshape(resol, resol, resol)
 
 ######################### Soliton Init Factory Setting!
 
