@@ -42,7 +42,7 @@ import matplotlib.animation as animation
 
 import numexpr as ne
 # import numba
-from scipy.optimize import CubicSpline as CS
+from scipy.interpolate import CubicSpline as CS
 import pyfftw
 import multiprocessing
 
