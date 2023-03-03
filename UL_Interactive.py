@@ -30,9 +30,9 @@ UVel = [0,0,0]
 
 t0 = 0
     
-Version   = str('PyUL2_Int') # Handle used in console.
-D_version = str('Build 2021 May 05') # Detailed Version
-S_version = 21.0 # Short Version
+Version   = str('PyUL2_IntR') # Handle used in console.
+D_version = str('Build 2023 Mar 03') # Detailed Version
+S_version = 21.02 # Short Version
 
 import sys
 import numpy as np
@@ -467,10 +467,14 @@ def InitSolitonF(gridVec, position, resol, alpha, delta_x=0.00001, DR = 1):
     fR = np.arange(len(f)) * delta_x / np.sqrt(alpha)
 
     fInterp = CS(fR, f, bc_type=("clamped", "not-a-knot"))
-
+    
     DistArrPts = DistArr.reshape(resol**3)
 
-    return fInterp(DistArrPts).reshape(resol, resol, resol)
+    Eval = fInterp(DistArrPts)
+    
+    Eval[DistArrPts > fR[-1]] = 0 # Fix Cubic Spline Behaviour
+
+    return Eval.reshape(resol,resol,resol)
 
 ######################### Soliton Init Factory Setting!
 
