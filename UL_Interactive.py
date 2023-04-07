@@ -30,9 +30,9 @@ UVel = [0,0,0]
 
 t0 = 0
     
-Version   = str('PyUL2_Int') # Handle used in console.
-D_version = str('Build 2021 May 05') # Detailed Version
-S_version = 21.0 # Short Version
+Version   = str('PyUL2_IntR') # Handle used in console.
+D_version = str('Build 2023 Mar 03') # Detailed Version
+S_version = 21.02 # Short Version
 
 import sys
 import numpy as np
@@ -41,7 +41,8 @@ import matplotlib.animation as animation
 
 
 import numexpr as ne
-import numba
+# import numba
+from scipy.interpolate import CubicSpline as CS
 import pyfftw
 import multiprocessing
 
@@ -451,7 +452,29 @@ def NBodyAdvance_NI(TMState,h,masslist,phiSP,a,lengthC,resol,NS):
 
             return TMStateOut, GradientLog
 
+def InitSolitonF(gridVec, position, resol, alpha, delta_x=0.00001, DR = 1):
 
+    xAr, yAr, zAr = np.meshgrid(gridVec - position[0],
+                                gridVec - position[1],
+                                gridVec - position[2],
+                                sparse=True,
+                                indexing="ij")
+
+    gridSize = gridVec[1] - gridVec[0]
+    DistArr = ne.evaluate("sqrt(xAr**2+yAr**2+zAr**2 * DR)")
+
+    f = alpha * LoadDefaultSoliton()
+    fR = np.arange(len(f)) * delta_x / np.sqrt(alpha)
+
+    fInterp = CS(fR, f, bc_type=("clamped", "not-a-knot"))
+    
+    DistArrPts = DistArr.reshape(resol**3)
+
+    Eval = fInterp(DistArrPts)
+    
+    Eval[DistArrPts > fR[-1]] = 0 # Fix Cubic Spline Behaviour
+
+    return Eval.reshape(resol,resol,resol)
 
 ######################### Soliton Init Factory Setting!
 
@@ -484,7 +507,7 @@ def initsoliton(funct, xarray, yarray, zarray, position, alpha, f, delta_x,Cutof
 ##########################################################################################
 # CREATE THE Just-In-Time Functions (work in progress)
 
-initsoliton_jit = numba.jit(initsoliton)
+initsoliton_jit = initsoliton
 
 
 
